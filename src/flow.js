@@ -562,20 +562,15 @@
                                             addFiles: function (fileList, event) {
                                                 var files = [];
                                                 each(fileList, function (fileEntry) {
-                                                    var file;
-                                                    var id;
-                                                    if ('id' in fileEntry) {
-                                                        file = fileEntry.file;
-                                                        id = fileEntry.id;
-                                                    } else {
-                                                        id = this.generateUniqueIdentifier(file);
-                                                        file = fileEntry;
-                                                    }
+                                                    var file = fileEntry.file || fileEntry;
+                                                    var id = fileEntry.id || this.generateUniqueIdentifier(file);
+                                                    var attrs = fileEntry.attrs || {};
+
                                                     // Directories have size `0` and name `.`
                                                     // Ignore already added files
                                                     if (!(file.size % 4096 === 0 && (file.name === '.' || file.fileName === '.'))) {
                                                         if (!this.getFromUniqueIdentifier(id)) {
-                                                            var f = new FlowFile(this, file);
+                                                            var f = new FlowFile(this, file, attrs);
                                                             f.uniqueIdentifier = id;
                                                             if (this.fire('fileAdded', f, event)) {
                                                                 files.push(f);

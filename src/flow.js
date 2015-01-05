@@ -688,7 +688,7 @@
                                          * @param {File} file
                                          * @constructor
                                          */
-                                        function FlowFile(flowObj, file) {
+                                        function FlowFile(flowObj, file, attrs) {
 
                                             /**
                                              * Reference to parent Flow instance
@@ -701,6 +701,12 @@
                                              * @type {File}
                                              */
                                             this.file = file;
+
+                                            /**
+                                             * Extra parameters to send along
+                                             * @type {dict}
+                                             */
+                                            this.attrs = attrs || {};
 
                                             /**
                                              * File name. Some confusion in different versions of Firefox
@@ -1418,12 +1424,18 @@
                                                     each(query, function (v, k) {
                                                         params.push([encodeURIComponent(k), encodeURIComponent(v)].join('='));
                                                     });
+                                                    each(this.fileObj.attrs, function(v, k) {
+                                                        params.push([encodeURIComponent(k), encodeURIComponent(v)].join('='));
+                                                    });
                                                     target = this.getTarget(target, params);
                                                     data = blob || null;
                                                 } else {
                                                     // Add data from the query options
                                                     data = new FormData();
                                                     each(query, function (v, k) {
+                                                        data.append(k, v);
+                                                    });
+                                                    each(this.fileObj.attrs, function(v, k) {
                                                         data.append(k, v);
                                                     });
                                                     data.append(this.flowObj.opts.fileParameterName, blob, this.fileObj.file.name);

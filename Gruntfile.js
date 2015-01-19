@@ -16,7 +16,8 @@ module.exports = function(grunt) {
       build: {
         files: {
           'dist/flow.js': [
-            'src/flow.js'
+              'src/flow.js',
+              'lib/spark-md5.js'
           ]
         }
       }

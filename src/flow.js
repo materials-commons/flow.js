@@ -1331,7 +1331,7 @@
                 var data = self.prepareXhrRequest(uploadMethod, false, self.flowObj.opts.method, bytes);
                 self.xhr.send(data);
             };
-            fr.readAssArrayBuffer(bytes);
+            fr.readAsArrayBuffer(bytes);
         },
 
         /**

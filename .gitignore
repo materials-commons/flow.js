@@ -14,3 +14,4 @@
 # Tests
 sauce_connect.log
 /coverage
+dist/flow.js.diff

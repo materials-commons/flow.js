@@ -622,6 +622,16 @@
             return ret;
         },
 
+        findFile: function(matchFn){
+            var found = false;
+            each(this.files, function(file) {
+                if (matchFn(file)) {
+                    found = true;
+                }
+            });
+            return found;
+        },
+
         /**
          * Returns the total size of all files in bytes.
          * @function
@@ -780,6 +790,12 @@
          * @type {string}
          */
         this.hash = "";
+
+        /**
+         * Reference to spark object.
+         * @type {Spark}
+         */
+        this.spark = new SparkMD5.ArrayBuffer();
 
         this.bootstrap();
     }
@@ -1306,28 +1322,26 @@
                          (this.fileObj.file.webkitSlice ? 'webkitSlice' :
                           'slice')));
             var bytes = this.fileObj.file[func](this.startByte, this.endByte, this.fileObj.file.type);
-            /******************************************************************
-             ** Compute the following here:
-             **     1. Hash for the chunk
-             **     2. Add to the file incremental hash
-             **         If last block, then compute file hash
-             ******************************************************************/
-            //this.hash = SparkMD5.hash(bytes)
-            //this.fileObj.spark.append(bytes)
-            // if (this.fileObj.size === this.endByte) {
-            //    // Last block so compute final file hash
-            //    this.fileObj.hash = this.fileObj.spark.end()
-            // }
-
-            // Set up request and listen for event
+            var fr = new FileReader();
             this.xhr = new XMLHttpRequest();
             this.xhr.upload.addEventListener('progress', this.progressHandler, false);
             this.xhr.addEventListener("load", this.doneHandler, false);
             this.xhr.addEventListener("error", this.doneHandler, false);
+            var self = this;
+            fr.onload = function(e) {
+                self.hash = SparkMD5.ArrayBuffer.hash(e.target.result);
+                self.fileObj.spark.append(e.target.result);
+                if (self.fileObj.size === self.endByte) {
+                    // Last block so compute final file hash
+                    self.fileObj.hash = self.fileObj.spark.end();
+                }
 
-            var uploadMethod = evalOpts(this.flowObj.opts.uploadMethod, this.fileObj, this);
-            var data = this.prepareXhrRequest(uploadMethod, false, this.flowObj.opts.method, bytes);
-            this.xhr.send(data);
+                // Set up request and listen for event
+                var uploadMethod = evalOpts(self.flowObj.opts.uploadMethod, self.fileObj, self);
+                var data = self.prepareXhrRequest(uploadMethod, false, self.flowObj.opts.method, bytes);
+                self.xhr.send(data);
+            };
+            fr.readAsArrayBuffer(bytes);
         },
 
         /**
@@ -1337,9 +1351,9 @@
         abort: function () {
             // Abort and reset
             var xhr = this.xhr;
-            this.xhr = null;
             if (xhr) {
                 xhr.abort();
+                this.xhr = null;
             }
         },
 
